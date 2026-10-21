@@ -39,6 +39,8 @@ public class MainActivity extends Activity {
     protected void onCreate(Bundle b) {
         super.onCreate(b);
         sp = getSharedPreferences("pm", 0);
+        State.gain = sp.getInt("gain", 100) / 100f;
+        State.declick = sp.getInt("dc", 50);
         int p = (int) (20 * getResources().getDisplayMetrics().density);
         LinearLayout l = new LinearLayout(this);
         l.setOrientation(LinearLayout.VERTICAL);
@@ -60,14 +62,30 @@ public class MainActivity extends Activity {
         start.setOnClickListener(v -> toggle());
 
         gainLabel = new TextView(this);
-        gainLabel.setText("Mic volume: 100%");
+        gainLabel.setText("Mic volume: " + Math.round(State.gain * 100) + "%");
         SeekBar sb = new SeekBar(this);
         sb.setMax(300);
-        sb.setProgress(100);
+        sb.setProgress(Math.round(State.gain * 100));
         sb.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
             @Override public void onProgressChanged(SeekBar s, int v, boolean user) {
                 State.gain = v / 100f;
                 gainLabel.setText("Mic volume: " + v + "%");
+                sp.edit().putInt("gain", v).apply();
+            }
+            @Override public void onStartTrackingTouch(SeekBar s) { }
+            @Override public void onStopTrackingTouch(SeekBar s) { }
+        });
+
+        TextView dcLabel = new TextView(this);
+        dcLabel.setText(clickText(State.declick));
+        SeekBar dc = new SeekBar(this);
+        dc.setMax(100);
+        dc.setProgress(State.declick);
+        dc.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
+            @Override public void onProgressChanged(SeekBar s, int v, boolean user) {
+                State.declick = v;
+                dcLabel.setText(clickText(v));
+                sp.edit().putInt("dc", v).apply();
             }
             @Override public void onStartTrackingTouch(SeekBar s) { }
             @Override public void onStopTrackingTouch(SeekBar s) { }
@@ -91,6 +109,8 @@ public class MainActivity extends Activity {
         l.addView(start);
         l.addView(gainLabel);
         l.addView(sb);
+        l.addView(dcLabel);
+        l.addView(dc);
         l.addView(mute);
         l.addView(meter);
         l.addView(err);
@@ -98,6 +118,10 @@ public class MainActivity extends Activity {
         sv.addView(l);
         setContentView(sv);
         tick.run();
+    }
+
+    private static String clickText(int v) {
+        return v == 0 ? "Click removal: off" : "Click removal: " + v + "%";
     }
 
     private final Runnable tick = new Runnable() {

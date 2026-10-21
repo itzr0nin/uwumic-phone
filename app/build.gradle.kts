@@ -6,8 +6,8 @@ android {
         applicationId = "com.uwumic.wo"
         minSdk = 24
         targetSdk = 34
-        versionCode = 1
-        versionName = "3.0"
+        versionCode = 2
+        versionName = "3.1"
     }
     compileOptions {
         sourceCompatibility = JavaVersion.VERSION_1_8

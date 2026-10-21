@@ -55,9 +55,11 @@ public class UwUMicService extends Service {
                     AudioFormat.ENCODING_PCM_16BIT, Math.max(min, 16384));
             ar.startRecording();
             short[] s = new short[960]; // 20 ms
+            Declicker declicker = new Declicker(State.RATE);
             while (running) {
                 int n = ar.read(s, 0, s.length);
                 if (n <= 0) continue;
+                declicker.process(s, n, State.declick);
                 float g = State.muted ? 0f : State.gain;
                 byte[] o = new byte[n * 2];
                 int peak = 0;
@@ -90,7 +92,7 @@ public class UwUMicService extends Service {
         Notification.Builder b = Build.VERSION.SDK_INT >= 26
                 ? new Notification.Builder(this, ch) : new Notification.Builder(this);
         Notification n = b.setContentTitle("UwU Mic is streaming")
-                .setSmallIcon(android.R.drawable.ic_btn_speak_now).build();
+                .setSmallIcon(R.drawable.ic_stat).build();
         if (Build.VERSION.SDK_INT >= 29) {
             startForeground(1, n, ServiceInfo.FOREGROUND_SERVICE_TYPE_MICROPHONE);
         } else {
