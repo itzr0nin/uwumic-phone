@@ -13,6 +13,7 @@ import android.net.wifi.WifiManager;
 import android.os.Build;
 import android.os.IBinder;
 import android.os.PowerManager;
+import android.os.SystemClock;
 
 
 
@@ -41,6 +42,7 @@ public class UwUMicService extends Service {
         State.error = "";
         running = true;
         State.running = true;
+        State.startedAt = SystemClock.elapsedRealtime();
         acquireLocks();
         recThread = new Thread(this::recordLoop, "mic");
         recThread.start();

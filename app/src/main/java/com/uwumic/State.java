@@ -8,6 +8,7 @@ final class State {
     static volatile float gain = 1f;
     static volatile float level;
     static volatile int clients;
+    static volatile long startedAt;
     static volatile String error = "";
 
     private State() { }

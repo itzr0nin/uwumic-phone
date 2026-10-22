@@ -31,3 +31,11 @@ On Android 13+, allow notifications so the "UwU Mic is streaming" notice shows.
 ## Protocol (for reference)
 TCP. Server sends "UWUM" + sampleRate (int32 big-endian) + channels (1) + bits (16),
 then raw little-endian PCM16 mono. One PC at a time.
+
+## Look and fonts
+The screen follows the UwU Mic design: dark grid background, cyan/red status, hexagon gain handle.
+The GitHub build downloads Orbitron (titles) and JetBrains Mono (labels) into app/src/main/assets/fonts.
+Building locally? Put display.ttf, mono.ttf and monobold.ttf in that folder yourself, or skip it:
+without them the app uses system fonts and still works.
+The loudness meter and the volume slider are one control: the bright fill is how loud you are,
+the hexagon handle is the volume. Muting moves the handle to 0% and greys it out.

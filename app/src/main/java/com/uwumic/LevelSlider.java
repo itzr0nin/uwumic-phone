@@ -2,7 +2,6 @@ package com.uwumic;
 
 import android.content.Context;
 import android.graphics.Canvas;
-import android.graphics.Color;
 import android.graphics.Paint;
 import android.graphics.Path;
 import android.graphics.RectF;
@@ -10,70 +9,93 @@ import android.view.MotionEvent;
 import android.view.View;
 
 /**
- * One bar that is both the live loudness meter and the mic volume slider:
- * the colored fill moves with the sound, the round handle sets the volume (0-100%).
+ * One control that is both the live loudness meter and the mic volume slider (0-100%):
+ * the bright fill is how loud you are right now, the thin line and hexagon handle are the volume.
  */
 public class LevelSlider extends View {
     public interface Listener { void onChange(int percent); }
 
     private static final int MAX = 100;
+    private static final int CYAN = 0xFF00E5FF, AMBER = 0xFFF5B544, RED = 0xFFFF0A45, GREY = 0xFF6B7280;
     private final float d;
     private final Paint track = new Paint(Paint.ANTI_ALIAS_FLAG);
     private final Paint fill = new Paint(Paint.ANTI_ALIAS_FLAG);
-    private final Paint thumbFill = new Paint(Paint.ANTI_ALIAS_FLAG);
-    private final Paint thumbRing = new Paint(Paint.ANTI_ALIAS_FLAG);
-    private final Path clip = new Path();
+    private final Paint line = new Paint(Paint.ANTI_ALIAS_FLAG);
+    private final Paint hex = new Paint(Paint.ANTI_ALIAS_FLAG);
+    private final Paint hexShine = new Paint(Paint.ANTI_ALIAS_FLAG);
+    private final Path hexPath = new Path();
     private final RectF rect = new RectF();
     private float level;
     private int percent = 100;
+    private boolean muted;
     private Listener listener;
 
     public LevelSlider(Context c) {
         super(c);
         d = c.getResources().getDisplayMetrics().density;
-        track.setColor(Color.parseColor("#5A5A5E"));
-        thumbFill.setColor(Color.parseColor("#0B0B0D"));
-        thumbRing.setColor(Color.parseColor("#3B82F6"));
-        thumbRing.setStyle(Paint.Style.STROKE);
-        thumbRing.setStrokeWidth(3 * d);
+        track.setColor(0xFF141C29);
+        line.setStrokeWidth(2 * d);
+        hexShine.setColor(0x66FFFFFF);
     }
 
     public void setListener(Listener l) { listener = l; }
 
     public void setPercent(int p) {
-        percent = Math.max(0, Math.min(MAX, p));
-        invalidate();
+        p = Math.max(0, Math.min(MAX, p));
+        if (p != percent) { percent = p; invalidate(); }
     }
 
     public void setLevel(float v) {
-        level = Math.max(0f, Math.min(1f, v));
-        invalidate();
+        v = Math.max(0f, Math.min(1f, v));
+        if (v != level) { level = v; invalidate(); }
+    }
+
+    public void setMuted(boolean m) {
+        if (m != muted) { muted = m; invalidate(); }
     }
 
     @Override
     protected void onMeasure(int widthSpec, int heightSpec) {
-        setMeasuredDimension(MeasureSpec.getSize(widthSpec), (int) (48 * d));
+        setMeasuredDimension(MeasureSpec.getSize(widthSpec), (int) (44 * d));
+    }
+
+    private void hexagon(float x, float cy, float hw, float hh) {
+        hexPath.reset();
+        hexPath.moveTo(x, cy - hh);
+        hexPath.lineTo(x + hw, cy - hh * 0.55f);
+        hexPath.lineTo(x + hw, cy + hh * 0.55f);
+        hexPath.lineTo(x, cy + hh);
+        hexPath.lineTo(x - hw, cy + hh * 0.55f);
+        hexPath.lineTo(x - hw, cy - hh * 0.55f);
+        hexPath.close();
     }
 
     @Override
     protected void onDraw(Canvas canvas) {
-        float pad = 16 * d, left = pad, right = getWidth() - pad;
-        float cy = getHeight() / 2f, bh = 16 * d, span = right - left;
-        rect.set(left, cy - bh / 2, right, cy + bh / 2);
-        canvas.drawRoundRect(rect, bh / 2, bh / 2, track);
+        float pad = 12 * d, left = pad, right = getWidth() - pad, span = right - left;
+        float cy = getHeight() / 2f, th = 8 * d;
+        rect.set(left, cy - th / 2, right, cy + th / 2);
+        canvas.drawRoundRect(rect, 2 * d, 2 * d, track);
 
-        clip.reset();
-        clip.addRoundRect(rect, bh / 2, bh / 2, Path.Direction.CW);
-        canvas.save();
-        canvas.clipPath(clip);
-        fill.setColor(level > 0.9f ? Color.parseColor("#EF4444")
-                : level > 0.7f ? Color.parseColor("#FACC15") : Color.parseColor("#4ADE80"));
-        canvas.drawRect(left, rect.top, left + span * level, rect.bottom, fill);
-        canvas.restore();
+        if (!muted && level > 0f) {
+            int c = level > 0.9f ? RED : level > 0.7f ? AMBER : CYAN;
+            fill.setColor((0xCC << 24) | (c & 0xFFFFFF));
+            canvas.save();
+            canvas.clipRect(left, rect.top, left + span * level, rect.bottom);
+            canvas.drawRoundRect(rect, 2 * d, 2 * d, fill);
+            canvas.restore();
+        }
 
         float x = left + span * percent / MAX;
-        canvas.drawCircle(x, cy, 12 * d, thumbFill);
-        canvas.drawCircle(x, cy, 12 * d, thumbRing);
+        if (!muted && percent > 0) {
+            line.setColor(CYAN);
+            canvas.drawLine(left, cy, x, cy, line);
+        }
+        hex.setColor(muted ? GREY : CYAN);
+        hexagon(x, cy, 9 * d, 14 * d);
+        canvas.drawPath(hexPath, hex);
+        hexagon(x, cy, 4 * d, 7 * d);
+        canvas.drawPath(hexPath, hexShine);
     }
 
     @Override
@@ -96,7 +118,7 @@ public class LevelSlider extends View {
     }
 
     private void moveTo(float x) {
-        float pad = 16 * d, span = getWidth() - 2 * pad;
+        float pad = 12 * d, span = getWidth() - 2 * pad;
         if (span <= 0) return;
         int p = Math.round(Math.max(0f, Math.min(1f, (x - pad) / span)) * MAX);
         if (p != percent) {
