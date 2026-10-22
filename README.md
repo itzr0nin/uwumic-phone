@@ -5,9 +5,7 @@ Turns your phone into a microphone for your PC. Pair it with the UwU Mic PC app.
 ## Use
 1. Install the APK, open UwU Mic, tap **Start**, allow the microphone.
 2. The app shows the phone's **IP** and **port** (default 8125). Type them into the PC app.
-3. Mic volume slider, **Click removal** slider and **Mute** are on this screen. Tap **Stop** to end.
-   Click removal (default 50%) cuts mouse/keyboard clicks before they reach the PC. 0% = off.
-   If "s" sounds get dull, lower it; if clicks still get through, raise it.
+3. Mic volume slider and **Mute** are on this screen. Tap **Stop** to end.
 Phone and PC must be on the same Wi-Fi (or use USB: `adb forward tcp:8125 tcp:8125`, then use 127.0.0.1).
 
 ## How to build the APK
