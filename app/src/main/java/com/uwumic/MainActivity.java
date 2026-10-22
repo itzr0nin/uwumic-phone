@@ -15,9 +15,7 @@ import android.view.WindowManager;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.LinearLayout;
-import android.widget.ProgressBar;
 import android.widget.ScrollView;
-import android.widget.SeekBar;
 import android.widget.TextView;
 
 import java.net.Inet4Address;
@@ -31,7 +29,8 @@ public class MainActivity extends Activity {
     private TextView info, gainLabel, err;
     private EditText port;
     private Button start, mute;
-    private ProgressBar meter;
+    private LevelSlider bar;
+    private float shown;
     private String ip = "";
     private int tickCount;
 
@@ -39,7 +38,7 @@ public class MainActivity extends Activity {
     protected void onCreate(Bundle b) {
         super.onCreate(b);
         sp = getSharedPreferences("pm", 0);
-        State.gain = sp.getInt("gain", 100) / 100f;
+        State.gain = Math.min(100, sp.getInt("gain", 100)) / 100f;
         int p = (int) (20 * getResources().getDisplayMetrics().density);
         LinearLayout l = new LinearLayout(this);
         l.setOrientation(LinearLayout.VERTICAL);
@@ -62,17 +61,12 @@ public class MainActivity extends Activity {
 
         gainLabel = new TextView(this);
         gainLabel.setText("Mic volume: " + Math.round(State.gain * 100) + "%");
-        SeekBar sb = new SeekBar(this);
-        sb.setMax(300);
-        sb.setProgress(Math.round(State.gain * 100));
-        sb.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
-            @Override public void onProgressChanged(SeekBar s, int v, boolean user) {
-                State.gain = v / 100f;
-                gainLabel.setText("Mic volume: " + v + "%");
-                sp.edit().putInt("gain", v).apply();
-            }
-            @Override public void onStartTrackingTouch(SeekBar s) { }
-            @Override public void onStopTrackingTouch(SeekBar s) { }
+        bar = new LevelSlider(this);
+        bar.setPercent(Math.round(State.gain * 100));
+        bar.setListener(v -> {
+            State.gain = v / 100f;
+            gainLabel.setText("Mic volume: " + v + "%");
+            sp.edit().putInt("gain", v).apply();
         });
 
         mute = new Button(this);
@@ -82,8 +76,6 @@ public class MainActivity extends Activity {
             mute.setText(State.muted ? "Unmute" : "Mute");
         });
 
-        meter = new ProgressBar(this, null, android.R.attr.progressBarStyleHorizontal);
-        meter.setMax(100);
         err = new TextView(this);
         err.setTextColor(Color.RED);
 
@@ -92,9 +84,8 @@ public class MainActivity extends Activity {
         l.addView(port);
         l.addView(start);
         l.addView(gainLabel);
-        l.addView(sb);
+        l.addView(bar);
         l.addView(mute);
-        l.addView(meter);
         l.addView(err);
         ScrollView sv = new ScrollView(this);
         sv.addView(l);
@@ -104,7 +95,7 @@ public class MainActivity extends Activity {
 
     private final Runnable tick = new Runnable() {
         @Override public void run() {
-            if (tickCount++ % 10 == 0) ip = lanIp();
+            if (tickCount++ % 20 == 0) ip = lanIp();
             boolean on = State.running;
             start.setText(on ? "Stop" : "Start");
             port.setEnabled(!on);
@@ -116,9 +107,10 @@ public class MainActivity extends Activity {
                 getWindow().clearFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
                 info.setText("Stopped.\nPhone IP: " + (ip.isEmpty() ? "not on Wi-Fi" : ip));
             }
-            meter.setProgress((int) (State.level * 100));
+            shown = Math.max(State.level, shown * 0.8f);
+            bar.setLevel(shown);
             err.setText(State.error);
-            h.postDelayed(this, 100);
+            h.postDelayed(this, 50);
         }
     };
 
