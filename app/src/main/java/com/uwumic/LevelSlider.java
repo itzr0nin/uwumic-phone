@@ -56,7 +56,7 @@ public class LevelSlider extends View {
 
     @Override
     protected void onMeasure(int widthSpec, int heightSpec) {
-        setMeasuredDimension(MeasureSpec.getSize(widthSpec), (int) (44 * d));
+        setMeasuredDimension(MeasureSpec.getSize(widthSpec), (int) (36 * d));
     }
 
     private void hexagon(float x, float cy, float hw, float hh) {

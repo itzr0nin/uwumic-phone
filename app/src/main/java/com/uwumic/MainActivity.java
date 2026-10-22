@@ -109,7 +109,7 @@ public class MainActivity extends Activity {
         LinearLayout p = new LinearLayout(this);
         p.setOrientation(LinearLayout.VERTICAL);
         p.setBackground(box(PANEL, stroke, 3));
-        p.setPadding(dp(16), dp(14), dp(16), dp(16));
+        p.setPadding(dp(14), dp(10), dp(14), dp(12));
         return p;
     }
 
@@ -118,6 +118,11 @@ public class MainActivity extends Activity {
         r.setOrientation(LinearLayout.HORIZONTAL);
         r.setGravity(Gravity.CENTER_VERTICAL);
         return r;
+    }
+
+    /** Flexible empty space: shares whatever height is left over, so the screen fills without scrolling. */
+    private void gap(LinearLayout parent) {
+        parent.addView(new View(this), new LinearLayout.LayoutParams(1, 0, 1f));
     }
 
     private View spacer() {
@@ -170,19 +175,20 @@ public class MainActivity extends Activity {
     private void buildUi() {
         LinearLayout c = new LinearLayout(this);
         c.setOrientation(LinearLayout.VERTICAL);
-        c.setPadding(dp(22), dp(44), dp(22), dp(36));
+        c.setPadding(dp(20), dp(16), dp(20), dp(16));
 
         // title
-        TextView title = text("", 30, INK, tfDisplay, 0.04f);
+        TextView title = text("", 26, INK, tfDisplay, 0.04f);
         SpannableStringBuilder t = new SpannableStringBuilder("UwU Mic");
         t.setSpan(new ForegroundColorSpan(CYAN), 4, 7, Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
         title.setText(t);
         c.addView(title);
-        c.addView(text("Wireless Audio Streamer", 12, DIM, tfMono, 0.06f), params(-2, -2, 0, 6, 0, 0));
+        c.addView(text("Wireless Audio Streamer", 12, DIM, tfMono, 0.06f), params(-2, -2, 0, 4, 0, 0));
+        gap(c);
 
         // ---- stream status
         LinearLayout status = panel(TEAL_EDGE);
-        add(c, status, 28);
+        add(c, status, 10);
         LinearLayout a = row();
         a.addView(text("STREAM STATUS", 11, DIM, tfMono, 0.12f));
         a.addView(spacer());
@@ -192,10 +198,10 @@ public class MainActivity extends Activity {
         a.addView(topMode, params(-2, -2, 8, 0, 0, 0));
         status.addView(a);
         formatPill = pill("", GREEN);
-        status.addView(formatPill, params(-2, -2, 0, 8, 0, 0));
+        status.addView(formatPill, params(-2, -2, 0, 6, 0, 0));
         divider = new View(this);
         divider.setBackgroundColor(0xFF1B2633);
-        status.addView(divider, params(-1, 1, 0, 12, 0, 0));
+        status.addView(divider, params(-1, 1, 0, 8, 0, 0));
         LinearLayout cr = row();
         dot = dotView(10, RED);
         statusText = text("STOPPED", 20, RED, tfDisplay, 0.06f);
@@ -206,11 +212,11 @@ public class MainActivity extends Activity {
         cr.addView(standby);
         timer = text("", 13, DIM, tfMono, 0.04f);
         cr.addView(timer);
-        status.addView(cr, params(-1, -2, 0, 14, 0, 0));
+        status.addView(cr, params(-1, -2, 0, 8, 0, 0));
 
         // ---- host ip
         LinearLayout ipPanel = panel(EDGE);
-        add(c, ipPanel, 12);
+        add(c, ipPanel, 8);
         LinearLayout ih = row();
         ih.addView(icon(R.drawable.ic_network, CYAN, 16));
         ih.addView(text("HOST IP ADDRESS", 11, SOFT, tfMonoBold, 0.12f), params(-2, -2, 8, 0, 0, 0));
@@ -222,14 +228,14 @@ public class MainActivity extends Activity {
         ipPanel.addView(ih);
         ipField = new LinearLayout(this);
         ipField.setGravity(Gravity.CENTER);
-        ipField.setPadding(dp(8), dp(14), dp(8), dp(14));
-        ipText = text("", 24, INK, tfMonoBold, 0.06f);
+        ipField.setPadding(dp(8), dp(8), dp(8), dp(8));
+        ipText = text("", 22, INK, tfMonoBold, 0.06f);
         ipField.addView(ipText);
-        ipPanel.addView(ipField, params(-1, -2, 0, 12, 0, 0));
+        ipPanel.addView(ipField, params(-1, -2, 0, 8, 0, 0));
 
         // ---- target port
         LinearLayout portPanel = panel(EDGE);
-        add(c, portPanel, 12);
+        add(c, portPanel, 8);
         LinearLayout ph = row();
         ph.addView(icon(R.drawable.ic_antenna, CYAN, 16));
         ph.addView(text("TARGET PORT", 11, SOFT, tfMonoBold, 0.12f), params(-2, -2, 8, 0, 0, 0));
@@ -248,31 +254,33 @@ public class MainActivity extends Activity {
         portEdit.setSingleLine(true);
         portEdit.setTextColor(INK);
         portEdit.setTypeface(tfMonoBold);
-        portEdit.setTextSize(24);
+        portEdit.setTextSize(22);
         portEdit.setLetterSpacing(0.06f);
         portEdit.setFilters(new InputFilter[]{new InputFilter.LengthFilter(5)});
         portEdit.setText(sp.getString("port", "8125"));
-        portEdit.setPadding(dp(8), dp(12), dp(8), dp(12));
+        portEdit.setPadding(dp(8), dp(6), dp(8), dp(6));
         portField.addView(portEdit, new LinearLayout.LayoutParams(-1, -2));
-        portPanel.addView(portField, params(-1, -2, 0, 12, 0, 0));
+        portPanel.addView(portField, params(-1, -2, 0, 8, 0, 0));
 
         // ---- start / stop
         action = new TextView(this);
         action.setGravity(Gravity.CENTER);
         action.setTypeface(tfDisplay);
-        action.setTextSize(16);
+        action.setTextSize(15);
         action.setLetterSpacing(0.08f);
-        action.setPadding(dp(16), dp(18), dp(16), dp(18));
+        action.setPadding(dp(16), dp(14), dp(16), dp(14));
         action.setCompoundDrawablePadding(dp(10));
         action.setOnClickListener(v -> toggle());
-        add(c, action, 28);
+        gap(c);
+        add(c, action, 12);
         errText = text("", 12, RED, tfMono, 0.04f);
         errText.setVisibility(View.GONE);
-        add(c, errText, 10);
+        add(c, errText, 6);
 
         // ---- mic gain
         LinearLayout gain = panel(EDGE);
-        add(c, gain, 28);
+        gap(c);
+        add(c, gain, 12);
         LinearLayout gh = row();
         gainIcon = icon(R.drawable.ic_mic, CYAN, 16);
         gh.addView(gainIcon);
@@ -290,7 +298,7 @@ public class MainActivity extends Activity {
             if (v > 0) State.muted = false;
             sp.edit().putInt("gain", v).apply();
         });
-        gain.addView(slider, params(-1, -2, 0, 8, 0, 0));
+        gain.addView(slider, params(-1, -2, 0, 2, 0, 0));
         LinearLayout labels = row();
         lblLeft = text("", 10, DIMMER, tfMono, 0.04f);
         lblMid = text("", 10, CYAN, tfMonoBold, 0.04f);
@@ -301,7 +309,7 @@ public class MainActivity extends Activity {
         labels.addView(lblLeft, new LinearLayout.LayoutParams(0, -2, 1f));
         labels.addView(lblMid, new LinearLayout.LayoutParams(0, -2, 1f));
         labels.addView(lblRight, new LinearLayout.LayoutParams(0, -2, 1f));
-        gain.addView(labels, params(-1, -2, 0, 4, 0, 0));
+        gain.addView(labels, params(-1, -2, 0, 0, 0, 0));
 
         // ---- mute
         muteBtn = new TextView(this);
@@ -309,10 +317,10 @@ public class MainActivity extends Activity {
         muteBtn.setTypeface(tfMonoBold);
         muteBtn.setTextSize(13);
         muteBtn.setLetterSpacing(0.08f);
-        muteBtn.setPadding(dp(16), dp(16), dp(16), dp(16));
+        muteBtn.setPadding(dp(16), dp(12), dp(16), dp(12));
         muteBtn.setCompoundDrawablePadding(dp(10));
         muteBtn.setOnClickListener(v -> State.muted = !State.muted);
-        add(c, muteBtn, 28);
+        add(c, muteBtn, 10);
 
         ScrollView sv = new ScrollView(this);
         sv.setFillViewport(true);
