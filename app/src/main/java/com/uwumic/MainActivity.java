@@ -107,7 +107,8 @@ public class MainActivity extends Activity {
                 getWindow().clearFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
                 info.setText("Stopped.\nPhone IP: " + (ip.isEmpty() ? "not on Wi-Fi" : ip));
             }
-            shown = Math.max(State.level, shown * 0.8f);
+            shown = Math.max(on ? State.level : 0f, shown * 0.8f);
+            if (shown < 0.01f) shown = 0f;
             bar.setLevel(shown);
             err.setText(State.error);
             h.postDelayed(this, 50);

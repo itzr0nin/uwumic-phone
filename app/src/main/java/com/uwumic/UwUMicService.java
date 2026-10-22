@@ -74,6 +74,7 @@ public class UwUMicService extends Service {
         } catch (Exception e) {
             State.error = "Mic error: " + e.getMessage();
         } finally {
+            State.level = 0f; // the thread may write one last value after stop; clear it
             if (ar != null) {
                 try { ar.stop(); } catch (Exception ignored) { }
                 ar.release();
