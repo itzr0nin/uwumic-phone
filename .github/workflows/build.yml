@@ -1,0 +1,25 @@
+name: Build APK
+on: [push, workflow_dispatch]
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Download fonts (optional, the app falls back to system fonts if this fails)
+        continue-on-error: true
+        run: |
+          mkdir -p app/src/main/assets/fonts
+          curl -fsSL "https://github.com/google/fonts/raw/main/ofl/orbitron/Orbitron%5Bwght%5D.ttf" -o app/src/main/assets/fonts/display.ttf || true
+          curl -fsSL "https://github.com/JetBrains/JetBrainsMono/raw/master/fonts/ttf/JetBrainsMono-Regular.ttf" -o app/src/main/assets/fonts/mono.ttf || true
+          curl -fsSL "https://github.com/JetBrains/JetBrainsMono/raw/master/fonts/ttf/JetBrainsMono-Bold.ttf" -o app/src/main/assets/fonts/monobold.ttf || true
+          for f in app/src/main/assets/fonts/*.ttf; do [ "$(stat -c%s "$f" 2>/dev/null || echo 0)" -gt 10000 ] || rm -f "$f"; done
+          ls -la app/src/main/assets/fonts || true
+      - uses: actions/setup-java@v4
+        with: { distribution: temurin, java-version: 17 }
+      - uses: gradle/actions/setup-gradle@v4
+        with: { gradle-version: "8.7" }
+      - run: gradle assembleDebug --no-daemon
+      - uses: actions/upload-artifact@v4
+        with:
+          name: UwUMic-apk
+          path: app/build/outputs/apk/debug/app-debug.apk
