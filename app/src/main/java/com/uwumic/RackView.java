@@ -78,8 +78,9 @@ public class RackView extends View {
 
     private void notifyPort() {
         if (portListener != null && getWidth() > 0) {
-            portListener.onPortRect(Math.round(ox + (L + 20) * u), Math.round(oy + 372f * u),
-                    Math.round(ox + (R - 100) * u), Math.round(oy + 406f * u), u);
+            // the middle of the port LCD (326 + 34 .. 326 + 76), starting where the IP digits start
+            portListener.onPortRect(Math.round(ox + (L + 22) * u), Math.round(oy + 364f * u),
+                    Math.round(ox + (R - 100) * u), Math.round(oy + 398f * u), u);
         }
     }
 

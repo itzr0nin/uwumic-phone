@@ -37,6 +37,8 @@ public class MainActivity extends Activity implements RackView.Listener, RackVie
     private boolean lastRunning;
     private boolean keepOn;
     private int tickCount;
+    private int portL, portT, portW, portH;
+    private float portSize;
 
     @Override
     protected void onCreate(Bundle b) {
@@ -92,17 +94,39 @@ public class MainActivity extends Activity implements RackView.Listener, RackVie
 
     @Override
     public void onPortRect(int l, int t, int r, int b, float u) {
-        FrameLayout.LayoutParams lp = new FrameLayout.LayoutParams(Math.max(1, r - l), Math.max(1, b - t));
-        lp.leftMargin = l;
-        lp.topMargin = t;
-        portEdit.setLayoutParams(lp);
-        portEdit.setTextSize(TypedValue.COMPLEX_UNIT_PX, 21.5f * u);
+        // Called while the screen is being laid out. Changing another view's size right now can leave it squashed
+        // (the port box stayed 1 pixel wide on some phones), so remember where it goes and apply it afterwards.
+        portL = l;
+        portT = t;
+        portW = Math.max(1, r - l);
+        portH = Math.max(1, b - t);
+        portSize = 21.5f * u;
+        portEdit.post(new Runnable() {
+            @Override public void run() { applyPortRect(); }
+        });
+    }
+
+    private void applyPortRect() {
+        if (portW <= 0) return;
+        FrameLayout.LayoutParams lp = (FrameLayout.LayoutParams) portEdit.getLayoutParams();
+        if (lp.width != portW || lp.height != portH || lp.leftMargin != portL || lp.topMargin != portT) {
+            lp.width = portW;
+            lp.height = portH;
+            lp.leftMargin = portL;
+            lp.topMargin = portT;
+            portEdit.setLayoutParams(lp);
+        }
+        portEdit.setTextSize(TypedValue.COMPLEX_UNIT_PX, portSize);
     }
 
     // ------------------------------------------------------------------ live updates
     private final Runnable tick = new Runnable() {
         @Override public void run() {
             if (tickCount++ % 20 == 0) rack.setIp(lanIp());
+            if (portW > 0 && (portEdit.getWidth() != portW || portEdit.getHeight() != portH)) {
+                applyPortRect();   // self-healing: if the box is not the right size for any reason, fix it again
+                portEdit.requestLayout();
+            }
             if (State.running != lastRunning) {
                 lastRunning = State.running;
                 styleEdit();
